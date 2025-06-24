@@ -1,6 +1,15 @@
 FROM php:8.2-fpm
 
 # Instalar dependencias del sistema incluyendo Node.js 20
+# Etapa dividida por pasos
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    gnupg \
+    lsb-release
+
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpng-dev \
@@ -10,12 +19,14 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     git \
-    curl \
     libpq-dev \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && npm install -g npm@10.8.2 \
-    && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd zip
+    nodejs
+
+RUN npm install -g npm@10.8.2
+
+RUN docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd zip
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
